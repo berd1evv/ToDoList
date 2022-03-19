@@ -11,10 +11,11 @@ import SnapKit
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
     var list: [String] = ["To wash Dishes", "To take a shower", "To do a homework"]
-    var detailList: [String] = ["fdfdfd", "dfdfdf", "dfdfd"]
+    var detailList: [String] = ["ASAP", "After the lunch", "Math, English"]
     
     var listId = 0
     var listId2 = 0
+    
     let label: UILabel = {
         let label = UILabel()
         label.text = "Create a new list by tapping on add button"
@@ -22,7 +23,8 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         return label
     }()
     
-    let editButton: UIButton = {
+    
+    var editButton: UIButton = {
         let button = UIButton()
         button.tintColor = .white
         button.backgroundColor = .blue
@@ -61,15 +63,15 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         super.viewDidLoad()
         view.backgroundColor = .white
         
-        title = "To Do List"
-        navigationItem.leftBarButtonItem = editButtonItem
         navigationController?.navigationBar.backgroundColor = .white
         
         tableView.delegate = self
         tableView.dataSource = self
+        
         tableView.isEditing = false
         tableView.allowsMultipleSelection = true
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        
         
         view.addSubview(label)
         view.addSubview(tableView)
@@ -122,6 +124,16 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     }
     
     @objc func editButtonTapped() {
+        if tableView.isEditing == true {
+            tableView.setEditing(false, animated: true)
+            editButton.setImage(UIImage(systemName: "pencil"), for: .normal)
+            addButton.isHidden = false
+        }else {
+            tableView.setEditing(true, animated: true)
+            editButton.setImage(UIImage(systemName: "xmark"), for: .normal)
+            addButton.isHidden = true
+        }
+        
     }
     
     @objc func addButtonTapped() {
@@ -139,6 +151,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == UITableViewCell.EditingStyle.delete{
             list.remove(at: indexPath.row)
+            detailList.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: UITableView.RowAnimation.automatic)
         }
     }
@@ -176,6 +189,10 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         let movedObject = list[sourceIndexPath.row]
         list.remove(at: sourceIndexPath.row)
         list.insert(movedObject, at: destinationIndexPath.row)
+        
+        let movedObject1 = detailList[sourceIndexPath.row]
+        detailList.remove(at: sourceIndexPath.row)
+        detailList.insert(movedObject1, at: destinationIndexPath.row)
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
