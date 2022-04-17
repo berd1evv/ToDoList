@@ -8,7 +8,9 @@
 import UIKit
 
 class EditCellViewController: UIViewController, UITextFieldDelegate  {
-            
+    
+    var isRead = false
+    
     let textField1: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Enter text here!"
@@ -55,11 +57,9 @@ class EditCellViewController: UIViewController, UITextFieldDelegate  {
     }
     
     @objc func saveButtonPressed() {
+        let list = ToDoListModel(title: textField1.text ?? "", description: textField2.text ?? "", checkmark: isRead)
         let name1 = Notification.Name("editNotification")
-        NotificationCenter.default.post(name: name1, object: textField1.text)
-        
-        let name2 = Notification.Name("editNotification2")
-        NotificationCenter.default.post(name: name2, object: textField2.text)
+        NotificationCenter.default.post(name: name1, object: list)
         
         dismiss(animated: true, completion: nil)
     }

@@ -10,8 +10,7 @@ import UIKit
 
 class AddNewCellViewController: UIViewController  {
     
-    var list1: [String] = []
-    var list2: [String] = []
+    var list = [ToDoListModel]()
     
     var textValue: String = ""
     
@@ -61,13 +60,10 @@ class AddNewCellViewController: UIViewController  {
     }
     
     @objc func saveButtonPressed() {
-        list1.append(textField1.text ?? "")
-        let name1 = Notification.Name("addNotification")
-        NotificationCenter.default.post(name: name1, object: list1)
-        
-        list2.append(textField2.text ?? "")
-        let name2 = Notification.Name("addNotification2")
-        NotificationCenter.default.post(name: name2, object: list2)
+        list.append(ToDoListModel(title: textField1.text ?? "", description: textField2.text ?? ""))
+        let name = Notification.Name("addNotification")
+        NotificationCenter.default.post(name: name, object: list)
+
         
         dismiss(animated: true, completion: nil)
     }

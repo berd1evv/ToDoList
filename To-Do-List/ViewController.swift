@@ -10,8 +10,7 @@ import SnapKit
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
-    var list: [String] = ["To wash Dishes", "To take a shower", "To do a homework"]
-    var detailList: [String] = ["ASAP", "After the lunch", "Math, English"]
+    var model: [ToDoListModel] = []
     
     var listId = 0
     var listId2 = 0
@@ -79,41 +78,31 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         view.addSubview(addButton)
         
         createObservers()
-        
         setUpConstraints()
+        
+        model.append(ToDoListModel(title: "To wash Dishes", description: "ASAP"))
+        model.append(ToDoListModel(title: "To take a shower", description: "After the lunch"))
+        model.append(ToDoListModel(title: "To do a homework", description: "Math, English"))
     }
     
     func createObservers() {
         NotificationCenter.default.addObserver(self, selector: #selector(addScreen(notification:)), name: addNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(addScreen2(notification:)), name: addNotification2, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(editScreen(notification:)), name: editNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(editScreen2(notification:)), name: editNotification2, object: nil)
     }
     
     @objc func addScreen(notification: NSNotification) {
-        let name: [String] = notification.object as! [String]
-        list.insert(contentsOf: name, at: list.endIndex)
+        let name: [ToDoListModel] = notification.object as! [ToDoListModel]
+        model += name
         tableView.reloadData()
     }
-    
-    @objc func addScreen2(notification: NSNotification) {
-        let name: [String] = notification.object as! [String]
-        detailList.insert(contentsOf: name, at: detailList.endIndex)
-        tableView.reloadData()
-    }
+
     
     @objc func editScreen(notification: NSNotification) {
-        let name: String = notification.object.unsafelyUnwrapped as! String
-        list[listId] = name
+        let name: ToDoListModel = notification.object.unsafelyUnwrapped as! ToDoListModel
+        model[listId] = name
         tableView.reloadData()
     }
-    
-    @objc func editScreen2(notification: NSNotification) {
-        let name: String = notification.object.unsafelyUnwrapped as! String
-        detailList[listId] = name
-        tableView.reloadData()
-    }
-    
+
     override func viewDidLayoutSubviews() {
         tableView.frame = view.bounds
     }
@@ -124,7 +113,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     }
     
     @objc func editButtonTapped() {
-        if tableView.isEditing == true {
+        if tableView.isEditing {
             tableView.setEditing(false, animated: true)
             editButton.setImage(UIImage(systemName: "pencil"), for: .normal)
             addButton.isHidden = false
@@ -145,13 +134,12 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return list.count
+        return model.count
     }
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == UITableViewCell.EditingStyle.delete{
-            list.remove(at: indexPath.row)
-            detailList.remove(at: indexPath.row)
+            model.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: UITableView.RowAnimation.automatic)
         }
     }
@@ -162,9 +150,13 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             cell = UITableViewCell(style: .subtitle, reuseIdentifier: "reuseIdentifier")
         }
         cell?.accessoryType = .detailDisclosureButton
-        cell?.textLabel?.text = list[indexPath.row]
-        cell?.detailTextLabel?.text = detailList[indexPath.row]
-        cell?.imageView?.image = UIImage(systemName: "checkmark.circle")
+        cell?.textLabel?.text = model[indexPath.row].title
+        cell?.detailTextLabel?.text = model[indexPath.row].description
+        if model[indexPath.row].checkmark {
+            cell?.imageView?.image = UIImage(systemName: "checkmark.circle.fill")
+        } else {
+            cell?.imageView?.image = UIImage(systemName: "checkmark.circle")
+        }
         cell?.imageView?.tintColor = .systemYellow
         return cell!
     }
@@ -174,37 +166,29 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         let navCon = UINavigationController(rootViewController: destination)
         navCon.modalTransitionStyle = .crossDissolve
         navCon.modalPresentationStyle = .overCurrentContext
-        if let i = self.list.firstIndex(of: self.list[indexPath.row]) {
-            destination.textField1.text = list[i]
-            listId = i
-        }
-        if let i = self.detailList.firstIndex(of: self.detailList[indexPath.row]) {
-            destination.textField2.text = detailList[i]
-            
-        }
+        destination.textField1.text = model[indexPath.row].title
+        destination.textField2.text = model[indexPath.row].description
+        destination.isRead = model[indexPath.row].checkmark
+        listId = indexPath.row
+        
         present(navCon, animated: true, completion: nil)
     }
     
     func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
-        let movedObject = list[sourceIndexPath.row]
-        list.remove(at: sourceIndexPath.row)
-        list.insert(movedObject, at: destinationIndexPath.row)
+        let movedObject = model[sourceIndexPath.row]
+        model.remove(at: sourceIndexPath.row)
+        model.insert(movedObject, at: destinationIndexPath.row)
         
-        let movedObject1 = detailList[sourceIndexPath.row]
-        detailList.remove(at: sourceIndexPath.row)
-        detailList.insert(movedObject1, at: destinationIndexPath.row)
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        if let cell = tableView.cellForRow(at: indexPath as IndexPath) {
-            if cell.imageView?.image == UIImage(systemName: "checkmark.circle") {
-                cell.imageView?.image = UIImage(systemName: "checkmark.circle.fill")
-            }
-            else{
-                cell.imageView?.image = UIImage(systemName: "checkmark.circle")
-            }
+        if model[indexPath.row].checkmark {
+            model[indexPath.row].checkmark = false
+        } else {
+            model[indexPath.row].checkmark = true
         }
+        tableView.reloadData()
     }
     
     func setUpConstraints() {
