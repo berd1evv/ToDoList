@@ -19,11 +19,13 @@ class EditCellViewController: UIViewController, UITextFieldDelegate  {
         return textField
     }()
     
-    let textField2: UITextField = {
-        let textField = UITextField()
-        textField.placeholder = "Enter text here!"
+    let textField2: UITextView = {
+        let textField = UITextView()
         textField.textAlignment = .natural
-        textField.borderStyle = .roundedRect
+        textField.font = .systemFont(ofSize: 17)
+        textField.layer.borderWidth = 0.1
+        textField.layer.masksToBounds = true
+        textField.layer.cornerRadius = 10
         textField.translatesAutoresizingMaskIntoConstraints = false
         return textField
     }()

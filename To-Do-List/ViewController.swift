@@ -13,7 +13,6 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     var model: [ToDoListModel] = []
     
     var listId = 0
-    var listId2 = 0
     
     let label: UILabel = {
         let label = UILabel()
@@ -22,8 +21,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         return label
     }()
     
-    
-    var editButton: UIButton = {
+    let editButton: UIButton = {
         let button = UIButton()
         button.tintColor = .white
         button.backgroundColor = .blue
@@ -50,9 +48,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     var tableView = UITableView()
     
     let addNotification = Notification.Name("addNotification")
-    let addNotification2 = Notification.Name("addNotification2")
     let editNotification = Notification.Name("editNotification")
-    let editNotification2 = Notification.Name("editNotification2")
     
     deinit {
         NotificationCenter.default.removeObserver(self)
@@ -71,9 +67,8 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         tableView.allowsMultipleSelection = true
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
         
-        
-        view.addSubview(label)
         view.addSubview(tableView)
+        view.addSubview(label)
         view.addSubview(editButton)
         view.addSubview(addButton)
         
@@ -117,7 +112,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             tableView.setEditing(false, animated: true)
             editButton.setImage(UIImage(systemName: "pencil"), for: .normal)
             addButton.isHidden = false
-        }else {
+        } else {
             tableView.setEditing(true, animated: true)
             editButton.setImage(UIImage(systemName: "xmark"), for: .normal)
             addButton.isHidden = true
@@ -141,23 +136,27 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         if editingStyle == UITableViewCell.EditingStyle.delete{
             model.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: UITableView.RowAnimation.automatic)
+            if model.count == 0 {
+                label.isHidden = false
+            } else {
+                label.isHidden = true
+            }
         }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let index = model[indexPath.row]
         var cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier")
         if cell == nil {
             cell = UITableViewCell(style: .subtitle, reuseIdentifier: "reuseIdentifier")
         }
+        label.isHidden = true
         cell?.accessoryType = .detailDisclosureButton
-        cell?.textLabel?.text = model[indexPath.row].title
-        cell?.detailTextLabel?.text = model[indexPath.row].description
-        if model[indexPath.row].checkmark {
-            cell?.imageView?.image = UIImage(systemName: "checkmark.circle.fill")
-        } else {
-            cell?.imageView?.image = UIImage(systemName: "checkmark.circle")
-        }
+        cell?.textLabel?.text = index.title
+        cell?.detailTextLabel?.text = index.description
+        cell?.imageView?.image = index.checkmark ? UIImage(systemName: "checkmark.circle.fill") : UIImage(systemName: "checkmark.circle")
         cell?.imageView?.tintColor = .systemYellow
+        
         return cell!
     }
     
