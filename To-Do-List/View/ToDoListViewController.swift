@@ -8,11 +8,18 @@
 import UIKit
 import SnapKit
 
-class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+class ToDoListViewController: UIViewController {
     
-    var model: [ToDoListModel] = []
+    private var viewModel: ToDoListProtocol
     
-    var listId = 0
+    init(vm: ToDoListProtocol = ToDoListViewModel()) {
+        viewModel = vm
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+            fatalError("init(coder:) has not been implemented")
+    }
     
     let label: UILabel = {
         let label = UILabel()
@@ -57,8 +64,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
-        
-        navigationController?.navigationBar.backgroundColor = .white
+        navigationController?.navigationBar.isHidden = true
         
         tableView.delegate = self
         tableView.dataSource = self
@@ -75,9 +81,9 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         createObservers()
         setUpConstraints()
         
-        model.append(ToDoListModel(title: "To wash Dishes", description: "ASAP"))
-        model.append(ToDoListModel(title: "To take a shower", description: "After the lunch"))
-        model.append(ToDoListModel(title: "To do a homework", description: "Math, English"))
+        viewModel.model.append(ToDoListModel(title: "To wash Dishes", description: "ASAP"))
+        viewModel.model.append(ToDoListModel(title: "To take a shower", description: "After the lunch"))
+        viewModel.model.append(ToDoListModel(title: "To do a homework", description: "Math, English"))
     }
     
     func createObservers() {
@@ -87,14 +93,14 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     
     @objc func addScreen(notification: NSNotification) {
         let name: [ToDoListModel] = notification.object as! [ToDoListModel]
-        model += name
+        viewModel.model += name
         tableView.reloadData()
     }
 
     
     @objc func editScreen(notification: NSNotification) {
         let name: ToDoListModel = notification.object.unsafelyUnwrapped as! ToDoListModel
-        model[listId] = name
+        viewModel.model[viewModel.listId] = name
         tableView.reloadData()
     }
 
@@ -127,68 +133,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         navCon.modalPresentationStyle = .overCurrentContext
         present(navCon, animated: true, completion: nil)
     }
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return model.count
-    }
-    
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == UITableViewCell.EditingStyle.delete{
-            model.remove(at: indexPath.row)
-            tableView.deleteRows(at: [indexPath], with: UITableView.RowAnimation.automatic)
-            if model.count == 0 {
-                label.isHidden = false
-            } else {
-                label.isHidden = true
-            }
-        }
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let index = model[indexPath.row]
-        var cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier")
-        if cell == nil {
-            cell = UITableViewCell(style: .subtitle, reuseIdentifier: "reuseIdentifier")
-        }
-        label.isHidden = true
-        cell?.accessoryType = .detailDisclosureButton
-        cell?.textLabel?.text = index.title
-        cell?.detailTextLabel?.text = index.description
-        cell?.imageView?.image = index.checkmark ? UIImage(systemName: "checkmark.circle.fill") : UIImage(systemName: "checkmark.circle")
-        cell?.imageView?.tintColor = .systemYellow
-        
-        return cell!
-    }
-    
-    func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath) {
-        let destination = EditCellViewController()
-        let navCon = UINavigationController(rootViewController: destination)
-        navCon.modalTransitionStyle = .crossDissolve
-        navCon.modalPresentationStyle = .overCurrentContext
-        destination.textField1.text = model[indexPath.row].title
-        destination.textField2.text = model[indexPath.row].description
-        destination.isRead = model[indexPath.row].checkmark
-        listId = indexPath.row
-        
-        present(navCon, animated: true, completion: nil)
-    }
-    
-    func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
-        let movedObject = model[sourceIndexPath.row]
-        model.remove(at: sourceIndexPath.row)
-        model.insert(movedObject, at: destinationIndexPath.row)
-        
-    }
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
-        if model[indexPath.row].checkmark {
-            model[indexPath.row].checkmark = false
-        } else {
-            model[indexPath.row].checkmark = true
-        }
-        tableView.reloadData()
-    }
+
     
     func setUpConstraints() {
         label.snp.makeConstraints { make in
@@ -213,3 +158,68 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
 
 }
 
+// MARK: TableView
+
+extension ToDoListViewController: UITableViewDelegate, UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return viewModel.model.count
+    }
+    
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == UITableViewCell.EditingStyle.delete{
+            viewModel.model.remove(at: indexPath.row)
+            tableView.deleteRows(at: [indexPath], with: UITableView.RowAnimation.automatic)
+            if viewModel.model.count == 0 {
+                label.isHidden = false
+            } else {
+                label.isHidden = true
+            }
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let index = viewModel.model[indexPath.row]
+        var cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier")
+        if cell == nil {
+            cell = UITableViewCell(style: .subtitle, reuseIdentifier: "reuseIdentifier")
+        }
+        label.isHidden = true
+        cell?.accessoryType = .detailDisclosureButton
+        cell?.textLabel?.text = index.title
+        cell?.detailTextLabel?.text = index.description
+        cell?.imageView?.image = index.checkmark ? UIImage(systemName: "checkmark.circle.fill") : UIImage(systemName: "checkmark.circle")
+        cell?.imageView?.tintColor = .systemYellow
+        
+        return cell!
+    }
+    
+    func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath) {
+        let destination = EditCellViewController()
+        let navCon = UINavigationController(rootViewController: destination)
+        navCon.modalTransitionStyle = .crossDissolve
+        navCon.modalPresentationStyle = .overCurrentContext
+        destination.textField1.text = viewModel.model[indexPath.row].title
+        destination.textField2.text = viewModel.model[indexPath.row].description
+        destination.viewModel.isRead = viewModel.model[indexPath.row].checkmark
+        viewModel.listId = indexPath.row
+        
+        present(navCon, animated: true, completion: nil)
+    }
+    
+    func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
+        let movedObject = viewModel.model[sourceIndexPath.row]
+        viewModel.model.remove(at: sourceIndexPath.row)
+        viewModel.model.insert(movedObject, at: destinationIndexPath.row)
+        
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        if viewModel.model[indexPath.row].checkmark {
+            viewModel.model[indexPath.row].checkmark = false
+        } else {
+            viewModel.model[indexPath.row].checkmark = true
+        }
+        tableView.reloadData()
+    }
+}

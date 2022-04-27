@@ -1,5 +1,5 @@
 //
-//  EditCellViewController.swift
+//  AddNewCellViewController.swift
 //  To-Do-List
 //
 //  Created by Eldiiar on 1/3/22.
@@ -7,10 +7,19 @@
 
 import UIKit
 
-class EditCellViewController: UIViewController, UITextFieldDelegate  {
+class AddNewCellViewController: UIViewController  {
     
-    var isRead = false
+    private var viewModel: AddNewCellProtocol
     
+    init(vm: AddNewCellProtocol = AddNewCellViewModel()) {
+        viewModel = vm
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+            fatalError("init(coder:) has not been implemented")
+    }
+        
     let textField1: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Enter text here!"
@@ -36,7 +45,7 @@ class EditCellViewController: UIViewController, UITextFieldDelegate  {
         navigationController?.isNavigationBarHidden = false
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(closeButtonPressed))
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .save, target: self, action: #selector(saveButtonPressed))
-        
+                
         view.addSubview(textField1)
         view.addSubview(textField2)
         
@@ -59,10 +68,10 @@ class EditCellViewController: UIViewController, UITextFieldDelegate  {
     }
     
     @objc func saveButtonPressed() {
-        let list = ToDoListModel(title: textField1.text ?? "", description: textField2.text ?? "", checkmark: isRead)
-        let name1 = Notification.Name("editNotification")
-        NotificationCenter.default.post(name: name1, object: list)
-        
+        viewModel.list.append(ToDoListModel(title: textField1.text ?? "", description: textField2.text ?? ""))
+        let name = Notification.Name("addNotification")
+        NotificationCenter.default.post(name: name, object: viewModel.list)
+
         dismiss(animated: true, completion: nil)
     }
 }

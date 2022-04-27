@@ -21,7 +21,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         if let windowScene = scene as? UIWindowScene {
             
             let window = UIWindow(windowScene: windowScene)
-            let viewController = ViewController()
+            let viewController = ToDoListViewController()
             //let navController = UINavigationController(rootViewController: viewController)
             self.window = window
             window.rootViewController = viewController
